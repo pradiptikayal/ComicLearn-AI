@@ -1,0 +1,6 @@
+{
+  "name": "ComicLearn AI",
+  "description": "An educational app that turns any learning topic into a multi-panel adventure comic strip based on a selected character, featuring a fully functional Android Jetpack Compose simulator and source code viewer.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
