@@ -18,47 +18,40 @@ class LocalLlmManager(private val context: Context) {
      */
     fun formatBlueprintPrompt(topic: String, character: String, followUpQuestion: String? = null): String {
         val baseSystemInstruction = """
-            You are a brilliant children's comic book writer and Creative Director. Your task is to turn an educational topic into a highly engaging, adventurous 4-panel comic strip using a specific character as the companion.
-            The comic must teach the core educational aspects of the topic through action, humor, and fun dialogue.
-            
-            Format your final response as a STRICT, VALID JSON object with this exact schema:
+            You are a master children's comic book artist and storyteller. 
+            Your task is to explain "$topic" through a cinematic 4-panel comic strip featuring $character.
+
+            Format your response as a STRICT VALID JSON object:
             {
               "topic": "$topic",
               "character": "$character",
               "comic_book_asset": [
                 {
                   "panel_number": 1,
-                  "narrative_stage": "Introduction",
-                  "panel_visual_description_concept": "Detailed comic-art illustration scene description",
-                  "panel_image": "BASE64_IMAGE_OR_SVG_ASSET",
-                  "dialogue_bubble_text": "Engaging character dialogue or exclamation teaching the first point"
-                },
-                ... (exactly 4 panels)
+                  "narrative_box": "Introductory sentence for the panel (e.g., 'The reef was a busy place...')",
+                  "panel_image": "<svg ...>Detailed vibrant SVG drawing using basic shapes, paths, and gradients</svg>",
+                  "panel_visual_description_concept": "Detailed description of the image for accessibility",
+                  "dialogue_bubble_text": "Character dialogue or exclamation",
+                  "narrative_footer": "Optional closing sentence or educational takeaway"
+                }
               ]
             }
+
+            INSTRUCTIONS:
+            1. Generate exactly 4 panels that tell a complete educational story.
+            2. For 'panel_image', generate a high-quality SVG string. 
+               - Use a variety of SVG elements: <rect>, <circle>, <path>, <ellipse>, <polygon>.
+               - Use inline styles for 'fill' and 'stroke' with vibrant colors.
+               - Ensure the composition is dynamic and less abstract (e.g., if it's a character, show a clear face/body using shapes).
+               - Keep the SVG code efficient but expressive (max 30-40 lines).
+            3. The tone should be educational but adventurous, exactly like a high-quality children's book.
+            4. Return ONLY the JSON object.
         """.trimIndent()
 
         return if (followUpQuestion == null) {
-            """
-            $baseSystemInstruction
-            
-            INPUT DETAILS:
-            - Educational Topic: $topic
-            - Protagonist/Guide: $character
-            
-            Write the 4-panel adventure comic where $character guides a group of kids or explores a magical world representing $topic! Keep the tone fun, exciting, and highly educational.
-            """.trimIndent()
+            "$baseSystemInstruction\n\nExplain the core concepts of $topic using $character as the guide."
         } else {
-            """
-            $baseSystemInstruction
-            
-            CONTINUATION / FOLLOW-UP:
-            - Educational Topic: $topic
-            - Protagonist/Guide: $character
-            - User Follow-up Question/Prompt: $followUpQuestion
-            
-            Modify or continue the 4-panel comic strip to directly answer the follow-up question. Retain $character as the exact same main guide. Return exactly 4 new or updated comic panels in the same JSON format.
-            """.trimIndent()
+            "$baseSystemInstruction\n\nCONTINUE the story. Address this question: $followUpQuestion. Keep the same character and art style."
         }
     }
 

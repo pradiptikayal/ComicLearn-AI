@@ -14,7 +14,7 @@ import com.comiclearn.ai.ui.ComicViewerScreen
 import com.comiclearn.ai.ui.DashboardScreen
 
 class MainActivity : ComponentActivity() {
-    private val viewModel: ComicLearnViewModel by viewModels()
+    private val viewModel by viewModels<ComicLearnViewModel>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

@@ -7,26 +7,26 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Send
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.ImageLoader
+import coil.compose.AsyncImage
+import coil.decode.SvgDecoder
 import com.comiclearn.ai.data.ComicBook
 import com.comiclearn.ai.data.ComicPanel
 
-/**
- * Screen 2: Comic Viewer & Chat Loop
- * Renders the vertical scrollable list of panels and a bottom text entry for follow-ups.
- */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ComicViewerScreen(
@@ -53,7 +53,7 @@ fun ComicViewerScreen(
                         onNavigateBack()
                     }) {
                         Icon(
-                            imageVector = Icons.Default.ArrowBack,
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Go Back"
                         )
                     }
@@ -94,7 +94,7 @@ fun ComicViewerScreen(
                         modifier = Modifier.weight(1f),
                         shape = RoundedCornerShape(24.dp),
                         maxLines = 3,
-                        colors = TextFieldDefaults.outlinedTextFieldColors(
+                        colors = OutlinedTextFieldDefaults.colors(
                             focusedBorderColor = Color(0xFF4F46E5)
                         )
                     )
@@ -117,7 +117,7 @@ fun ComicViewerScreen(
                         )
                     ) {
                         Icon(
-                            imageVector = Icons.Default.Send,
+                            imageVector = Icons.AutoMirrored.Filled.Send,
                             contentDescription = "Send Follow-up"
                         )
                     }
@@ -128,8 +128,8 @@ fun ComicViewerScreen(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color(0xFFF3F4F6))
                 .padding(innerPadding)
+                .background(Color(0xFFF3F4F6))
         ) {
             when (val state = uiState) {
                 is UiState.Loading -> {
@@ -140,161 +140,138 @@ fun ComicViewerScreen(
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
                             CircularProgressIndicator(color = Color(0xFF4F46E5))
                             Spacer(modifier = Modifier.height(16.dp))
-                            Text(
-                                text = "Creating magical comic panels...",
-                                color = Color(0xFF4B5563),
-                                fontWeight = FontWeight.Medium
-                            )
+                            Text("Creating magical panels...", color = Color(0xFF4B5563))
                         }
                     }
                 }
                 is UiState.Success -> {
-                    ComicCanvas(
-                        comicBook = state.comicBook,
-                        modifier = Modifier.fillMaxSize()
-                    )
+                    ComicCanvas(comicBook = state.comicBook)
                 }
                 is UiState.Error -> {
                     Box(
                         modifier = Modifier.fillMaxSize().padding(32.dp),
                         contentAlignment = Alignment.Center
                     ) {
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text(
-                                text = "Oops! Something went wrong",
-                                fontSize = 18.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = Color.Red
-                            )
-                            Spacer(modifier = Modifier.height(8.dp))
-                            Text(
-                                text = state.message,
-                                color = Color(0xFF4B5563),
-                                textAlign = TextAlign.Center
-                            )
-                        }
+                        Text(
+                            text = "Error: ${state.message}",
+                            color = Color.Red,
+                            textAlign = TextAlign.Center
+                        )
                     }
                 }
-                else -> {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(text = "Comic book generation initialized.")
-                    }
-                }
+                else -> {}
             }
         }
     }
 }
 
 @Composable
-fun ComicCanvas(
-    comicBook: ComicBook,
-    modifier: Modifier = Modifier
-) {
+fun ComicCanvas(comicBook: ComicBook) {
     LazyColumn(
-        modifier = modifier.padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        modifier = Modifier.fillMaxSize(),
+        contentPadding = PaddingValues(16.dp),
+        verticalArrangement = Arrangement.spacedBy(24.dp)
     ) {
         items(comicBook.comic_book_asset) { panel ->
             ComicPanelCard(panel = panel, character = comicBook.character)
         }
-        
         item {
-            Spacer(modifier = Modifier.height(40.dp))
+            Spacer(modifier = Modifier.height(32.dp))
         }
     }
 }
 
 @Composable
-fun ComicPanelCard(
-    panel: ComicPanel,
-    character: String
-) {
+fun ComicPanelCard(panel: ComicPanel, character: String) {
+    val context = LocalContext.current
+    val imageLoader = remember {
+        ImageLoader.Builder(context)
+            .components { add(SvgDecoder.Factory()) }
+            .build()
+    }
+
     Card(
-        shape = RoundedCornerShape(16.dp),
+        shape = RoundedCornerShape(8.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+        border = borderStroke(2.dp, Color.Black),
         modifier = Modifier.fillMaxWidth()
     ) {
-        Column {
-            // Graphic scene representation
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(200.dp)
-                    .background(Color(0xFFE0E7FF))
-                    .padding(12.dp)
-            ) {
-                Text(
-                    text = if (panel.panel_image.isNotEmpty()) {
-                        "✨ [MULTIMODAL ILLUSTRATION LOADED] ✨\n\n${panel.panel_visual_description_concept}"
-                    } else {
-                        panel.panel_visual_description_concept
-                    },
-                    fontSize = 13.sp,
-                    color = Color(0xFF4F46E5),
-                    fontStyle = FontStyle.Italic,
-                    modifier = Modifier
-                        .align(Alignment.Center)
-                        .padding(16.dp),
-                    textAlign = TextAlign.Center
-                )
-
+        Column(modifier = Modifier.padding(2.dp)) {
+            // Narrative Box (Top)
+            if (panel.narrative_box.isNotEmpty()) {
                 Surface(
-                    color = Color(0xFFEF4444),
-                    shape = RoundedCornerShape(4.dp),
-                    modifier = Modifier
-                        .align(Alignment.TopStart)
-                        .padding(4.dp)
+                    color = Color(0xFFFFF9C4), // Light yellow
+                    border = borderStroke(1.dp, Color.Black),
+                    modifier = Modifier.padding(8.dp)
                 ) {
                     Text(
-                        text = "WOW!",
-                        color = Color.White,
-                        fontWeight = FontWeight.Black,
-                        fontSize = 10.sp,
-                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                        text = panel.narrative_box,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Medium,
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp)
                     )
                 }
             }
 
-            // Dialogue block
-            Column(
+            // Image Area
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
+                    .height(260.dp)
                     .background(Color.White)
-                    .padding(16.dp)
             ) {
-                Text(
-                    text = character,
-                    fontWeight = FontWeight.Black,
-                    fontSize = 14.sp,
-                    color = Color(0xFF4F46E5)
-                )
+                if (panel.panel_image.contains("<svg", ignoreCase = true)) {
+                    AsyncImage(
+                        model = panel.panel_image.toByteArray(Charsets.UTF_8),
+                        contentDescription = panel.panel_visual_description_concept,
+                        imageLoader = imageLoader,
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = androidx.compose.ui.layout.ContentScale.Fit
+                    )
+                }
                 
-                Spacer(modifier = Modifier.height(6.dp))
+                // Dialogue Bubble (Overlaid on image)
+                if (panel.dialogue_bubble_text.isNotEmpty()) {
+                    Surface(
+                        color = Color.White,
+                        shape = RoundedCornerShape(16.dp),
+                        border = borderStroke(1.5.dp, Color.Black),
+                        modifier = Modifier
+                            .align(Alignment.TopEnd)
+                            .padding(12.dp)
+                            .widthIn(max = 180.dp)
+                    ) {
+                        Text(
+                            text = panel.dialogue_bubble_text,
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)
+                        )
+                    }
+                }
+            }
 
-                Box(
+            // Narrative Footer (Bottom)
+            if (panel.narrative_footer.isNotEmpty()) {
+                Surface(
+                    color = Color(0xFFFFF9C4), // Light yellow
+                    border = borderStroke(1.dp, Color.Black),
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clip(RoundedCornerShape(topStart = 0.dp, topEnd = 16.dp, bottomStart = 16.dp, bottomEnd = 16.dp))
-                        .background(Color(0xFFF3F4F6))
-                        .border(
-                            width = 1.dp, 
-                            color = Color(0xFFD1D5DB),
-                            shape = RoundedCornerShape(topStart = 0.dp, topEnd = 16.dp, bottomStart = 16.dp, bottomEnd = 16.dp)
-                        )
-                        .padding(12.dp)
+                        .padding(8.dp)
                 ) {
                     Text(
-                        text = "\"${panel.dialogue_bubble_text}\"",
-                        fontSize = 15.sp,
-                        color = Color(0xFF1F2937),
-                        fontWeight = FontWeight.Medium
+                        text = panel.narrative_footer,
+                        fontSize = 13.sp,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp)
                     )
                 }
             }
         }
     }
 }
+
+@Composable
+fun borderStroke(width: androidx.compose.ui.unit.Dp, color: Color) = 
+    androidx.compose.foundation.BorderStroke(width, color)

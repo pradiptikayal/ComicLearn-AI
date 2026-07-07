@@ -80,7 +80,7 @@ fun DashboardScreen(
                 placeholder = { Text("e.g. Photosynthesis, How black holes form, Gravity...") },
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
-                colors = TextFieldDefaults.outlinedTextFieldColors(
+                colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = Color(0xFF4F46E5),
                     unfocusedBorderColor = Color(0xFFD1D5DB)
                 )
