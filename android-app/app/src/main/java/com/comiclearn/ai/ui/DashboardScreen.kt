@@ -16,6 +16,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.comiclearn.ai.data.ComicCharacter
 
 /**
  * Screen 1: Dashboard
@@ -24,12 +25,29 @@ import androidx.compose.ui.unit.sp
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DashboardScreen(
-    onNavigateToComic: (topic: String, character: String) -> Unit
+    onNavigateToComic: (topic: String, character: ComicCharacter) -> Unit
 ) {
     var topicText by remember { mutableStateOf("") }
-    var selectedCharacter by remember { mutableStateOf("") }
+    var selectedCharacter by remember { mutableStateOf<ComicCharacter?>(null) }
 
-    val characters = listOf("Iron Man", "Sherlock Holmes", "Batman", "Albert Einstein")
+    val characters = listOf(
+        ComicCharacter(
+            name = "Iron Man",
+            characterDescription = "A high-tech armored superhero in red and gold plating with a glowing circular chest piece (arc reactor)."
+        ),
+        ComicCharacter(
+            name = "Sherlock Holmes",
+            characterDescription = "A Victorian detective wearing a brown deerstalker hat and a long tweed coat, holding a magnifying glass."
+        ),
+        ComicCharacter(
+            name = "Batman",
+            characterDescription = "A dark-clad caped crusader with a bat-eared cowl, a utility belt, and a large black cape."
+        ),
+        ComicCharacter(
+            name = "Albert Einstein",
+            characterDescription = "An elderly scientist with wild white hair, a bushy mustache, and wearing a simple sweater and trousers."
+        )
+    )
 
     Column(
         modifier = Modifier
@@ -104,9 +122,9 @@ fun DashboardScreen(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 items(characters) { character ->
-                    val isSelected = selectedCharacter == character
+                    val isSelected = selectedCharacter?.name == character.name
                     CharacterCard(
-                        name = character,
+                        name = character.name,
                         isSelected = isSelected,
                         onClick = { selectedCharacter = character }
                     )
@@ -117,11 +135,12 @@ fun DashboardScreen(
         // Action Trigger Button
         Button(
             onClick = {
-                if (topicText.isNotBlank() && selectedCharacter.isNotBlank()) {
-                    onNavigateToComic(topicText, selectedCharacter)
+                val char = selectedCharacter
+                if (topicText.isNotBlank() && char != null) {
+                    onNavigateToComic(topicText, char)
                 }
             },
-            enabled = topicText.isNotBlank() && selectedCharacter.isNotBlank(),
+            enabled = topicText.isNotBlank() && selectedCharacter != null,
             modifier = Modifier
                 .fillMaxWidth()
                 .height(56.dp),

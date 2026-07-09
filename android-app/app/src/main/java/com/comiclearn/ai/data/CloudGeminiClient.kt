@@ -20,7 +20,7 @@ class CloudGeminiClient {
         apiKey = apiKey,
         generationConfig = generationConfig {
             responseMimeType = "application/json"
-            maxOutputTokens = 4096
+            maxOutputTokens = 8192 // Increased for high-detail SVG generation
         }
     )
 

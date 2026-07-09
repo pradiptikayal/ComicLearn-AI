@@ -3,6 +3,12 @@ package com.comiclearn.ai.data
 import kotlinx.serialization.Serializable
 
 @Serializable
+data class ComicCharacter(
+    val name: String,
+    val characterDescription: String
+)
+
+@Serializable
 data class ComicBook(
     val topic: String,
     val character: String,

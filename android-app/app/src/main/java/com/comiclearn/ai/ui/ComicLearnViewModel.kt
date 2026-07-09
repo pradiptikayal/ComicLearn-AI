@@ -5,6 +5,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.comiclearn.ai.data.CloudGeminiClient
 import com.comiclearn.ai.data.ComicBook
+import com.comiclearn.ai.data.ComicCharacter
 import com.comiclearn.ai.data.LocalLlmManager
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -35,15 +36,15 @@ class ComicLearnViewModel(application: Application) : AndroidViewModel(applicati
     // Active session state tracking
     var currentTopic: String = ""
         private set
-    var currentCharacter: String = ""
+    var currentCharacter: ComicCharacter? = null
         private set
 
     /**
      * Triggers comic creation. Generates blueprint locally using LiteRT-LM first,
      * then queries Gemini cloud for full-fidelity structured response.
      */
-    fun generateComic(topic: String, character: String) {
-        if (topic.isBlank() || character.isBlank()) {
+    fun generateComic(topic: String, character: ComicCharacter) {
+        if (topic.isBlank() || character.name.isBlank()) {
             _uiState.value = UiState.Error("Topic and Character selection are required.")
             return
         }
@@ -78,7 +79,7 @@ class ComicLearnViewModel(application: Application) : AndroidViewModel(applicati
         
         // Retain current session state
         val topic = currentTopic
-        val character = currentCharacter
+        val character = currentCharacter ?: return
         _uiState.value = UiState.Loading
 
         viewModelScope.launch {
@@ -108,7 +109,7 @@ class ComicLearnViewModel(application: Application) : AndroidViewModel(applicati
      */
     fun resetSession() {
         currentTopic = ""
-        currentCharacter = ""
+        currentCharacter = null
         _uiState.value = UiState.Idle
     }
 }
