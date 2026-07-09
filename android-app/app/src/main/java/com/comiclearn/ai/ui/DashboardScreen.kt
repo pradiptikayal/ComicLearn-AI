@@ -1,5 +1,10 @@
 package com.comiclearn.ai.ui
 
+import android.app.Activity
+import android.content.Intent
+import android.speech.RecognizerIntent
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -7,6 +12,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -16,7 +23,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.tooling.preview.Preview
 import com.comiclearn.ai.data.ComicCharacter
+import java.util.Locale
 
 /**
  * Screen 1: Dashboard
@@ -29,6 +38,19 @@ fun DashboardScreen(
 ) {
     var topicText by remember { mutableStateOf("") }
     var selectedCharacter by remember { mutableStateOf<ComicCharacter?>(null) }
+
+    val speechLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult(),
+        onResult = { result ->
+            if (result.resultCode == Activity.RESULT_OK) {
+                val data = result.data
+                val results = data?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)
+                if (!results.isNullOrEmpty()) {
+                    topicText = results[0]
+                }
+            }
+        }
+    )
 
     val characters = listOf(
         ComicCharacter(
@@ -101,7 +123,23 @@ fun DashboardScreen(
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = Color(0xFF4F46E5),
                     unfocusedBorderColor = Color(0xFFD1D5DB)
-                )
+                ),
+                trailingIcon = {
+                    IconButton(onClick = {
+                        val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
+                            putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
+                            putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault())
+                            putExtra(RecognizerIntent.EXTRA_PROMPT, "What do you want to learn today?")
+                        }
+                        speechLauncher.launch(intent)
+                    }) {
+                        Icon(
+                            imageVector = Icons.Default.Mic,
+                            contentDescription = "Voice Input",
+                            tint = Color(0xFF4F46E5)
+                        )
+                    }
+                }
             )
 
             Spacer(modifier = Modifier.height(32.dp))
@@ -214,4 +252,10 @@ fun CharacterCard(
             )
         }
     }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun DashboardScreenPreview() {
+    DashboardScreen(onNavigateToComic = { _, _ -> })
 }

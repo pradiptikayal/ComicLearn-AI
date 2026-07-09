@@ -64,6 +64,7 @@ dependencies {
     implementation("androidx.compose.ui:ui-graphics")
     implementation("androidx.compose.ui:ui-tooling-preview")
     implementation("androidx.compose.material3:material3")
+    implementation("androidx.compose.material:material-icons-extended")
     implementation("androidx.navigation:navigation-compose:2.8.5")
     implementation("io.coil-kt:coil-compose:2.6.0")
     implementation("io.coil-kt:coil-svg:2.6.0")
